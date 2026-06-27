@@ -1,0 +1,8 @@
+name=Rae's Solitaire
+author=rae
+description=For having fun or killing time; patience is a virtue.
+bundleID=wtf.rae.solitaire
+version=0.5.0
+buildNumber=1052
+imagePath=images/system
+launchSoundPath=audio/sfx/pick1
