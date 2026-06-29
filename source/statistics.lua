@@ -8,7 +8,6 @@ class('statistics').extends(gfx.sprite)
 function statistics:init(...)
 	statistics.super.init(self)
 	local args = {...} -- Arguments passed in through the scene management will arrive here
-	gfx.sprite.setAlwaysRedraw(false) -- i guess we can't turn these off?
 
 	function pd.gameWillPause()
 		local menu = pd.getSystemMenu()
@@ -40,7 +39,7 @@ function statistics:update()
 end
 
 function statistics:draw()
-	-- TODO: draw statistics
+	-- NOTE: draw statistics
 
 	if save.control_bar then
 		-- drawing control bar

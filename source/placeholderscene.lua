@@ -8,7 +8,6 @@ class('title').extends(gfx.sprite)
 function title:init(...)
 	title.super.init(self)
 	local args = {...} -- Arguments passed in through the scene management will arrive here
-	gfx.sprite.setAlwaysRedraw(true)
 
 	function pd.gameWillPause()
 		local menu = pd.getSystemMenu()

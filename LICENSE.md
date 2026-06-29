@@ -4,6 +4,10 @@
 
 (source/images/cards/shattered) "Shattered" card images made by Powerdive Games, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
+(source/images/cards/reelistic) "Dock of Cods" card images made by Toad, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+(source/images/cards/bedbeard) "Post Hero" card images made by Scenic Route Software, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
 (source/images/cards/groove) "G.R.O.O.V.E." card image made by Synaptic Sugar, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 (source/libraries/xorshift.lua) xorshift Lua implementation made by Eli Piilonen, under [CC0](https://creativecommons.org/public-domain/cc0/)

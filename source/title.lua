@@ -15,7 +15,6 @@ class('title').extends(gfx.sprite)
 function title:init(...)
 	title.super.init(self)
 	local args = {...} -- Arguments passed in through the scene management will arrive here
-	gfx.sprite.setAlwaysRedraw(true) -- i guess we can't turn these off?
 
 	function pd.gameWillPause()
 		local menu = pd.getSystemMenu()
@@ -48,7 +47,7 @@ function title:initialize(args)
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'title' end)
 
 	if save.snapshot ~= nil then
-		table.insert(vars.selections, 'continue')
+		-- TODO: table.insert(vars.selections, 'continue')
 	end
 	table.insert(vars.selections, 'klondike')
 	if save.seenpickup then
@@ -81,7 +80,7 @@ function title:initialize(args)
 	loopingtimer('cards', 120000, 0, -2340)
 
 	-- TODO: rubdubdub on title screen activates 52 pickup mode
-	-- TODO: newmusic()
+	-- NOTE: newmusic()
 end
 
 function title:update()
@@ -239,7 +238,7 @@ function title:keypressed(button)
 			if vars.selections[vars.selection] == 'continue' then
 				scenemanager:transitionscene(klondike, {}, true)
 			elseif vars.selections[vars.selection] == 'klondike' then
-				-- dialog box "are you sure?" if continue point exists
+				-- TODO: dialog box "are you sure?" if continue point exists
 				scenemanager:transitionscene(klondike)
 			elseif vars.selections[vars.selection] == 'pickup' then
 				scenemanager:transitionscene(pickup)

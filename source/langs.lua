@@ -18,6 +18,14 @@ langs = {
 
 
 
+		["box_autocomplete"] = "Auto-Complete?",
+		["box_autocomplete_desc"] = "All cards revealed! Would\nyou like the game to sort them\ninto their banks automatically?",
+
+		["box_sure"] = "Sure!",
+		["box_nothanks"] = "No, Thanks.",
+
+
+
 		["box_inprogress"] = "Game In Progress",
 		["box_inprogress_desc"] = "Do you wanna continue your\ncurrent game, or start\na new one instead?",
 
@@ -103,11 +111,12 @@ langs = {
 		["settings_auto_2"] = "Auto",
 
 		["settings_crank"] = "Crank-to-Complete",
-		["settings_crank_desc"] = "Toggle the ability to\nuse the Playdate's\nCrank to auto-sort\nobvious moves, if\nany are available.\n\n*None*: Crank does\nnothing.\n*Top-Level*: Crank\nsorts singular cards.\n*Stacks*: Crank sorts\nentire stacks.",
+		["settings_crank_desc"] = "Toggle the ability to\nuse the Playdate's\nCrank to auto-sort\nobvious moves, if\nany are available.\n\n*Banks*: Crank only\nsorts cards into the\nbanks at the top.\n*Top-Level*: Crank\nsorts singular cards.\n*Stacks*: Crank sorts\nentire stacks.",
 
 		["settings_crank_0"] = "None",
-		["settings_crank_1"] = "Top-Level",
-		["settings_crank_2"] = "Stacks",
+		["settings_crank_1"] = "Banks",
+		["settings_crank_2"] = "Top-Level",
+		["settings_crank_3"] = "Stacks",
 
 		["settings_quickpick"] = "Quick-Pick",
 		["settings_quickpick_desc"] = "Toggle the ability to\nuse the Playdate's\nCrank to quickly\npick up stacks of\ncards at once.\n\nTo use Quick-Pick,\npress A to pick up\nthe first card in a\nstack. Then, turn the\nCrank to _quick-pick_\nthe rest of the stack.",
@@ -139,12 +148,18 @@ langs = {
 
 		["settings_card_front_antennae"] = "Antennae",
 		["settings_card_front_big"] = "Large Print",
-		["settings_card_front_shattered"] = "Shattered",
 		["settings_card_front_placeholder"] = "Placeholder",
 
 		["settings_card_front_by"] = "\n\nThis set was made by\n",
 
+		["settings_card_front_shattered"] = "Shattered",
 		["credits_card_front_shattered"] = "Powerdive Games",
+
+		["settings_card_front_reelistic"] = "Dock of Cods",
+		["credits_card_front_reelistic"] = "Toad",
+
+		["settings_card_front_bedbeard"] = "Post Hero",
+		["credits_card_front_bedbeard"] = "Scenic Route",
 
 		["settings_card_back"] = "Card Design (Back)",
 		["settings_card_back_desc"] = "Change the design on\nthe back face of the\ncards.",
@@ -161,12 +176,19 @@ langs = {
 		["settings_card_back_catalog"] = "Catalog",
 		["settings_card_back_bunny"] = "Bunny",
 		["settings_card_back_pesto"] = "Mortar & Pestle",
-		["settings_card_back_shattered"] = "Shattered",
-		["settings_card_back_groove"] = "G.R.O.O.V.E.",
 
 		["settings_card_back_by"] = "\n\nThis art was made by\n",
 
+		["settings_card_back_shattered"] = "Shattered",
 		["credits_card_back_shattered"] = "Powerdive Games",
+
+		["settings_card_back_reelistic"] = "Dock of Cods",
+		["credits_card_back_reelistic"] = "Toad",
+
+		["settings_card_back_bedbeard"] = "Post Hero",
+		["credits_card_back_bedbeard"] = "Scenic Route",
+
+		["settings_card_back_groove"] = "G.R.O.O.V.E.",
 		["credits_card_back_groove"] = "Synaptic Sugar",
 
 		["settings_cursor"] = "Cursor Design",
@@ -226,11 +248,10 @@ langs = {
 
 
 
-		-- TODO: xorshift by Eli Piilonen
 		["credits_begin"] = "Thanks for playing Rae's Solitaire!",
 		["credits_main"] = "Rae (that's me) did...\n...the main game art,\nthe programming,\nthe music, and\nthe sound effects.",
-		["credits_guest_decks"] = "Additional card art was made by:\nPowerdive Games, Synaptic Sugar,\n",
-		["credits_thanks"] = "With thanks to:\npotch and Kenney, for getting me into Klondike,\nthe Playplace for giving me a devlog,\nPanic, as always; and you, for playing!",
+		["credits_guest_decks"] = "Additional card art was made by:\nPowerdive Games, Toad, Scenic Route\nSoftware, Synaptic Sugar,\n",
+		["credits_thanks"] = "With thanks to:\nEli Piilonen for the randomization algo,\npotch and Kenney, for getting me into Klondike,\nthe Playplace for giving me a devlog,\nPanic, as always; and you, for playing!",
 	}
 }
 

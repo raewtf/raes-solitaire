@@ -8,7 +8,6 @@ class('credits').extends(gfx.sprite)
 function credits:init(...)
 	credits.super.init(self)
 	local args = {...} -- Arguments passed in through the scene management will arrive here
-	gfx.sprite.setAlwaysRedraw(false)
 
 	function pd.gameWillPause()
 		local menu = pd.getSystemMenu()
@@ -45,9 +44,9 @@ function credits:draw()
 		setcolor(255, 255, 255, 1, 'black')
 
 		drawtext(pixolde, text('credits_begin'), 10, 10)
-		drawtext(pixolde, text('credits_main'), 390, 30, right)
-		drawtext(pixolde, text('credits_guest_decks'), 10, 80)
-		drawtext(pixolde, text('credits_thanks'), 390, 150, right)
+		drawtext(pixolde, text('credits_main'), 390, 20, right)
+		drawtext(pixolde, text('credits_guest_decks'), 10, 60)
+		drawtext(pixolde, text('credits_thanks'), 390, 138, right)
 
 		local controls
 

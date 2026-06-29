@@ -32,6 +32,8 @@ if pd.metadata.bundleID == 'wtf.rae.solitaire' then catalog = true end
 pd.display.setRefreshRate(30)
 setbackgroundcolor('white')
 gfx.setLineWidth(2)
+-- TODO: calculate dirty rects properly in each scene
+gfx.sprite.setAlwaysRedraw(true)
 
 -- Localized text function.
 function text(key)
@@ -63,7 +65,7 @@ function savecheck()
 
 	-- klondike rules
 	save.deck_draw = save.deck_draw or 1 -- 1- or 3-draw
-	-- TODO: how to guarantee possible games
+	-- NOTE: how to guarantee possible games
 	if save.undo == nil then save.undo = true end -- undo
 	if save.possible == nil then save.possible = true end -- guarantee possible games
 	save.auto = save.auto or 1 -- auto-complete upon all cards being revealed
@@ -80,7 +82,6 @@ function savecheck()
 	save.backdrop = save.backdrop or 0.5 -- backdrop 'lightness'
 	save.card_guide = save.card_guide or 1 -- card guide 'lightness'
 
-	-- TODO: hook up statistics
 	-- statistics
 	save.playtime = save.playtime or 0
 
@@ -88,9 +89,11 @@ function savecheck()
 	save.games_won_klondike = save.games_won_klondike or 0
 	save.best_time_klondike = save.best_time_klondike or 0
 	save.lowest_moves_klondike = save.lowest_moves_klondike or 0
+	save.least_deck_passes_klondike = save.least_deck_passes_klondike or 0
 	save.total_deck_passes_klondike = save.total_deck_passes_klondike or 0
 	save.gametime_klondike = save.gametime_klondike or 0
 
+	-- TODO: hook up statistics for pickup
 	save.games_played_pickup = save.games_played_pickup or 0
 	save.best_time_pickup = save.best_time_pickup or 0
 	save.countups_pickup = save.countups_pickup or 0
@@ -147,6 +150,7 @@ card_images = {}
 transition_image = newimagetable('images/transition')
 
 -- should be run any time the card style is changed
+-- TODO: assert for size == 40x60
 function load_card_images()
 	for i = 1, 13 do
 		-- import card images
@@ -219,9 +223,22 @@ function commalize(amount)
   	return formatted
 end
 
+-- TODO: write manual
+-- TODO: write ad copy
+-- TODO: catalog page
+-- TODO: itch page
+
 function pd.gameWillTerminate()
 	-- TODO: save game capture if mid-play
-	-- TODO: exit animation
+	local img = gfx.getDisplayImage()
+	local byebye = newimagetable('images/byebye')
+	local byebyeanim = gfx.animator.new(800, 1, #byebye)
+	gfx.setDrawOffset(0, 0)
+	while not byebyeanim:ended() do
+		drawimage(img, 0, 0)
+		drawimagetable(byebye, floor(byebyeanim:currentValue()), 0, 0)
+		pd.display.flush()
+	end
 	savegame()
 end
 

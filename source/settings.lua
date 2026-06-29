@@ -8,7 +8,6 @@ class('settings').extends(gfx.sprite)
 function settings:init(...)
 	settings.super.init(self)
 	local args = {...} -- Arguments passed in through the scene management will arrive here
-	gfx.sprite.setAlwaysRedraw(true)
 
 	function pd.gameWillPause()
 		local menu = pd.getSystemMenu()
@@ -36,6 +35,49 @@ function settings:initialize(args)
 		gameplay_selections = {'music', 'sfx', 'card_sfx', 'timer', 'move_count', 'control_bar', 'loop', 'crank_direction', 'quickpick'},
 		klondike_rules_selections = {'deck_draw', 'undo', 'possible', 'auto', 'crank', 'stack_anywhere', 'deck_passes'},
 		customization_selections = {'card_front', 'card_back', 'cursor', 'anim_speed', 'backdrop', 'card_guide'},
+		card_fronts = {
+			'antennae',
+			'big',
+			'placeholder',
+			-- begin guest artist decks
+			'shattered',
+			'reelistic',
+			'bedbeard',
+		},
+		card_backs = {
+			'antennae',
+			'simple',
+			'gradient',
+			'logo',
+			'smiley',
+			'fullmoon',
+			'lavalamp',
+			'nosignal',
+			'peedee',
+			'catalog',
+			'bunny',
+			'pesto',
+			-- begin guest artist items
+			'shattered',
+			'reelistic',
+			'bedbeard',
+			'groove',
+		},
+		cursors = {
+			'cartoon',
+			'pinky',
+			'crank',
+			'pointer',
+			'retro_light',
+			'retro_dark',
+			'paw_light',
+			'paw_gray',
+			'paw_dark',
+			'fork',
+			'spoon',
+			'bang',
+			'oar',
+		},
 		selection = 1,
 		category_offset = 0,
 		category_target = 0,
@@ -52,10 +94,6 @@ function settings:update()
 	if pd.buttonJustPressed('right') then self:keypressed('right') end
 	if pd.buttonJustPressed('a') then self:keypressed('a') end
 	if pd.buttonJustPressed('b') then self:keypressed('b') end
-
-	-- TODO: move quickpick to gameplay section
-	-- TODO: add crank-to-complete item for "Banks" (only move cards to banks if available)
-	-- TODO: make card front/back and cursors pick from table in vars instead of hard-coding the progression
 
 	if vars.category_target ~= nil and vars.category_offset ~= nil then
 		vars.category_offset += (vars.category_target - vars.category_offset) * 0.5
@@ -143,7 +181,7 @@ function settings:draw()
 
 	-- customization preview
 	if vars.categories[vars.category_selection] == 'customization' then
-		-- TODO: bake backdrop
+		-- NOTE: bake backdrop
 		local offset = save.control_bar and 0 or 22
 
 		setcliprect(260, 140 + offset, 130, 70)
@@ -322,7 +360,7 @@ function settings:keypressed(button)
 				end
 			elseif cat_sel == 'crank' then
 				save.crank += 1
-				if save.crank > 2 then
+				if save.crank > 3 then
 					save.crank = 0
 				end
 			elseif cat_sel == 'quickpick' then
@@ -348,76 +386,35 @@ function settings:keypressed(button)
 					save.deck_passes = 0
 				end
 			elseif cat_sel == 'card_front' then
-				if save.card_front == 'antennae' then
-					save.card_front = 'big'
-				elseif save.card_front == 'big' then
-					save.card_front = 'shattered'
-				elseif save.card_front == 'shattered' then
-					save.card_front = 'placeholder'
-				elseif save.card_front == 'placeholder' then
-					save.card_front = 'antennae'
+				local sel = 0
+				for i = 1, #vars.card_fronts do
+					if save.card_front == vars.card_fronts[i] then
+						sel = i
+						break
+					end
 				end
+				save.card_front = vars.card_fronts[(sel == #vars.card_fronts and 1 or sel + 1)]
 				self:render_cards()
 				vars.reload = true
 			elseif cat_sel == 'card_back' then
-				if save.card_back == 'antennae' then
-					save.card_back = 'simple'
-				elseif save.card_back == 'simple' then
-					save.card_back = 'gradient'
-				elseif save.card_back == 'gradient' then
-					save.card_back = 'logo'
-				elseif save.card_back == 'logo' then
-					save.card_back = 'smiley'
-				elseif save.card_back == 'smiley' then
-					save.card_back = 'fullmoon'
-				elseif save.card_back == 'fullmoon' then
-					save.card_back = 'lavalamp'
-				elseif save.card_back == 'lavalamp' then
-					save.card_back = 'nosignal'
-				elseif save.card_back == 'nosignal' then
-					save.card_back = 'peedee'
-				elseif save.card_back == 'peedee' then
-					save.card_back = 'catalog'
-				elseif save.card_back == 'catalog' then
-					save.card_back = 'bunny'
-				elseif save.card_back == 'bunny' then
-					save.card_back = 'pesto'
-				elseif save.card_back == 'pesto' then
-					save.card_back = 'shattered'
-				elseif save.card_back == 'shattered' then
-					save.card_back = 'groove'
-				elseif save.card_back == 'groove' then
-					save.card_back = 'antennae'
+				local sel = 0
+				for i = 1, #vars.card_backs do
+					if save.card_back == vars.card_backs[i] then
+						sel = i
+						break
+					end
 				end
+				save.card_back = vars.card_backs[(sel == #vars.card_backs and 1 or sel + 1)]
 				self:render_cards()
 			elseif cat_sel == 'cursor' then
-				if save.cursor == 'cartoon' then
-					save.cursor = 'retro_light'
-				elseif save.cursor == 'retro_light' then
-					save.cursor = 'retro_dark'
-				elseif save.cursor == 'retro_dark' then
-					save.cursor = 'pointer'
-				elseif save.cursor == 'pointer' then
-					save.cursor = 'crank'
-				elseif save.cursor == 'crank' then
-					save.cursor = 'paw_light'
-				elseif save.cursor == 'paw_light' then
-					save.cursor = 'paw_gray'
-				elseif save.cursor == 'paw_gray' then
-					save.cursor = 'paw_dark'
-				elseif save.cursor == 'paw_dark' then
-					save.cursor = 'fork'
-				elseif save.cursor == 'fork' then
-					save.cursor = 'spoon'
-				elseif save.cursor == 'spoon' then
-					save.cursor = 'bang'
-				elseif save.cursor == 'bang' then
-					save.cursor = 'pinky'
-				elseif save.cursor == 'pinky' then
-					save.cursor = 'oar'
-				elseif save.cursor == 'oar' then
-					save.cursor = 'cartoon'
+				local sel = 0
+				for i = 1, #vars.cursors do
+					if save.cursor == vars.cursors[i] then
+						sel = i
+						break
+					end
 				end
+				save.cursor = vars.cursors[(sel == #vars.cursors and 1 or sel + 1)]
 				self:render_cards()
 			elseif cat_sel == 'anim_speed' then
 				save.anim_speed += 25
