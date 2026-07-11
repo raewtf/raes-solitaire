@@ -65,7 +65,6 @@ function savecheck()
 
 	-- klondike rules
 	save.deck_draw = save.deck_draw or 1 -- 1- or 3-draw
-	-- NOTE: how to guarantee possible games
 	if save.undo == nil then save.undo = true end -- undo
 	if save.possible == nil then save.possible = true end -- guarantee possible games
 	save.auto = save.auto or 1 -- auto-complete upon all cards being revealed
@@ -151,6 +150,7 @@ transition_image = newimagetable('images/transition')
 
 -- should be run any time the card style is changed
 -- TODO: assert for size == 40x60
+-- TODO: custom card image import from .pdi files in save-data folder
 function load_card_images()
 	for i = 1, 13 do
 		-- import card images
@@ -224,7 +224,7 @@ function commalize(amount)
 end
 
 -- TODO: write manual
--- TODO: write ad copy
+-- TODO: write game description for store pages
 -- TODO: catalog page
 -- TODO: itch page
 

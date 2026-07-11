@@ -1,8 +1,8 @@
 langs = {
 	en = {
 		["title_continue"] = "Continue",
-		["title_klondike"] = "Klondike",
-		["title_pickup"] = "52-Pickup",
+		["title_klondike"] = "Play Klondike",
+		["title_pickup"] = "Play 52-Pickup",
 		["title_statistics"] = "Statistics",
 		["title_highscores"] = "Global Record",
 		["title_settings"] = "Settings",
@@ -86,7 +86,7 @@ langs = {
 
 
 
-		["settings_klondike_rules"] = "Rules",
+		["settings_klondike_rules"] = "Rules: Klondike",
 
 		["settings_deck_draw"] = "Difficulty",
 		["settings_deck_draw_desc"] = "Change the difficulty\nof the game in\nterms of deck draws.\n\n*1-Draw*: Cards\nare drawn from the\ndeck one-at-a-time.\n*3-Draw*: Cards\nare drawn from the\ndeck three-at-a-time.",
@@ -98,9 +98,9 @@ langs = {
 		["settings_undo_desc"] = "Toggle the ability to\nundo moves in-game;\nletting you revert\ndecisions and try\nagain.",
 
 		["settings_possible"] = "Shuffle Algorithm",
-		["settings_possible_desc"] = "Change the way the\ncards are shuffled\nat the beginning\nof the game.\n\n*Random*: As if you've\nshuffled a real pack\nof cards. Solvability\nis not guaranteed.\n*Solvable*: The\ngame will ensure a\nstarting layout that\ncan be completed.",
+		["settings_possible_desc"] = "Change the way the\ncards are shuffled\nat the beginning\nof the game.\n\n*Random*: As if you've\nshuffled a real pack\nof cards. Solvability\nis not guaranteed.\n*Easy*: The starting\nlayout is tweaked\nto be a measure\nmore solvable.",
 
-		["settings_possible_true"] = "Solvable",
+		["settings_possible_true"] = "Easy",
 		["settings_possible_false"] = "Random",
 
 		["settings_auto"] = "Auto-Complete",
@@ -125,7 +125,7 @@ langs = {
 		["settings_stack_anywhere_desc"] = "Change which cards\ncan be stacked into\nempty spaces in the\ntableau.\n\n*Kings Only*: Only\nKings can be stacked\ninto empty spaces.\n*Any Card*: Anything\ncan be stacked into\nan empty space.",
 
 		["settings_stack_anywhere_true"] = "Any Card",
-		["settings_stack_anywhere_false"] = "Only Kings",
+		["settings_stack_anywhere_false"] = "Kings Only",
 
 		["settings_deck_passes"] = "Deck Passes",
 		["settings_deck_passes_desc"] = "Change the number\nof passes through\nthe deck you're\nallotted per game.\nIf you exceed this\nnumber, you won't be\nable to advance\nthe deck anymore.",

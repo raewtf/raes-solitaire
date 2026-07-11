@@ -24,6 +24,7 @@ end
 
 function settings:initialize(args)
 	assets = {
+		customization_backdrop = newimage(132, 72),
 	}
 
 	self:render_cards()
@@ -85,6 +86,8 @@ function settings:initialize(args)
 		hit_edge = false,
 	}
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'settings' end)
+
+	newmusic('audio/music/level1')
 end
 
 function settings:update()
@@ -151,14 +154,14 @@ function settings:draw()
 	-- top category selector bar
 	fillrect(0, 0, 250, 30)
 	setcolor(255, 255, 255, 1, 'white')
-	fillrect(70, 5, 110, 20, 5)
+	fillrect(65, 5, 120, 20, 5)
 
 	if vars.category_selection > 1 then
-		drawtext(pixolde_inverted, text('settings_' .. vars.categories[vars.category_selection - 1]), 125 - 70 + vars.category_offset, 8, right)
+		drawtext(pixolde_inverted, text('settings_' .. vars.categories[vars.category_selection - 1]), 125 - 75 + vars.category_offset, 8, right)
 	end
 	drawtext(pixolde_bold, text('settings_' .. cat), 125 + vars.category_offset, 8, center)
 	if vars.category_selection < #vars.categories then
-		drawtext(pixolde_inverted, text('settings_' .. vars.categories[vars.category_selection + 1]), 125 + 70 + vars.category_offset, 8)
+		drawtext(pixolde_inverted, text('settings_' .. vars.categories[vars.category_selection + 1]), 125 + 75 + vars.category_offset, 8)
 	end
 
 	for i = 1, #cat_sels do
@@ -181,34 +184,12 @@ function settings:draw()
 
 	-- customization preview
 	if vars.categories[vars.category_selection] == 'customization' then
-		-- NOTE: bake backdrop
 		local offset = save.control_bar and 0 or 22
 
-		setcliprect(260, 140 + offset, 130, 70)
+		drawimage(assets.customization_backdrop, 259, 139 + offset)
 
-		-- backdrop
-		setcolor(0, 0, 0, -(save.backdrop - 1), 'black')
-		fillrect(260, 140 + offset, 130, 70, 5)
-
-		-- card guides
-		for i = 1, 2 do
-			if i == 1 then
-				setcolor(255, 255, 255, 1, 'white')
-			else
-				setcolor(0, 0, 0, -(save.card_guide - 1), 'black')
-			end
-			drawrect(265, 145 + offset, 40, 60, 5)
-			drawrect(315, 145 + offset, 40, 60, 5)
-			drawrect(365, 145 + offset, 40, 60, 5)
-		end
-
-		clearcliprect()
-
-		setcolor(255, 255, 255, 1, 'black')
 		drawimage(assets.card_front, 265, 145 + offset)
 		drawimage(assets.card_back, 315, 145 + offset)
-		drawrect(260, 140 + offset, 130, 70, 5)
-
 		drawimage(assets.cursor, 272, 182)
 	end
 
@@ -249,6 +230,29 @@ function settings:draw()
 end
 
 function settings:render_cards()
+	gfx.pushContext(assets.customization_backdrop)
+		-- backdrop
+		setcolor(255, 255, 255, 1, 'white')
+		fillrect(1, 1, 130, 70, 5)
+
+		setcolor(0, 0, 0, -(save.backdrop - 1), 'black')
+		fillrect(1, 1, 130, 70, 5)
+
+		-- card guides
+		for i = 1, 2 do
+			if i == 1 then
+				setcolor(255, 255, 255, 1, 'white')
+			else
+				setcolor(0, 0, 0, -(save.card_guide - 1), 'black')
+			end
+			drawrect(6, 6, 40, 60, 5)
+			drawrect(56, 6, 40, 60, 5)
+			drawrect(106, 6, 40, 60, 5)
+		end
+
+		setcolor(255, 255, 255, 1, 'black')
+		drawrect(1, 1, 130, 70, 5)
+	gfx.popContext()
 	assets.card_back = newimage('images/cards/' .. save.card_back .. '/back')
 	local rand = randInt(1, 4)
 	local rand_suit = rand == 1 and 'clubs' or rand == 2 and 'hearts' or rand == 3 and 'spades' or rand == 4 and 'diamonds'
@@ -326,6 +330,11 @@ function settings:keypressed(button)
 		elseif button == 'a' then
 			if cat_sel == 'music' then
 				save.music = not save.music
+				if save.music then
+					newmusic('audio/music/level1')
+				else
+					stopmusic()
+				end
 			elseif cat_sel == 'sfx' then
 				save.sfx = not save.sfx
 			elseif cat_sel == 'card_sfx' then
@@ -427,12 +436,14 @@ function settings:keypressed(button)
 				if save.backdrop > 1 then
 					save.backdrop = 0
 				end
+				self:render_cards()
 			elseif cat_sel == 'card_guide' then
 				save.card_guide = ((save.card_guide * 10) + 1) / 10
 				if save.card_guide == 1 then save.card_guide = 1 end
 				if save.card_guide > 1 then
 					save.card_guide = 0
 				end
+				self:render_cards()
 			end
 			playsound(accept)
 			gfx.sprite.redrawBackground()

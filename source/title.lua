@@ -43,6 +43,7 @@ function title:initialize(args)
 		selections = {},
 		selection = 1,
 		hit_edge = false,
+		cards_offset = 0,
 	}
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'title' end)
 
@@ -53,7 +54,7 @@ function title:initialize(args)
 	if save.seenpickup then
 		-- TODO: table.insert(vars.selections, 'pickup')
 	end
-	table.insert(vars.selections, 'statistics')
+	-- TODO: table.insert(vars.selections, 'statistics')
 	if catalog then
 		-- TODO: table.insert(vars.selections, 'highscores')
 	end
@@ -80,7 +81,7 @@ function title:initialize(args)
 	loopingtimer('cards', 120000, 0, -2340)
 
 	-- TODO: rubdubdub on title screen activates 52 pickup mode
-	-- NOTE: newmusic()
+	newmusic('audio/music/level2')
 end
 
 function title:update()
@@ -93,6 +94,8 @@ function title:update()
 	if value('fade') > 0 then
 		gfx.sprite.redrawBackground()
 	end
+
+	vars.cards_offset -= (pd.getCrankChange() / 2)
 
 	local ticks = pd.getCrankTicks(4)
 
@@ -134,7 +137,7 @@ function title:draw()
 
 	drawimage(assets.logo, 10, 75 + offset)
 
-	local cards = floor(value('cards') / 2) * 2
+	local cards = ((floor(value('cards') / 2) * 2) + vars.cards_offset) % -2340
 
 	for i = 1, 52 do
 		local n = ceil(i / 4)

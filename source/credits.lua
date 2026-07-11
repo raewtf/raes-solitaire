@@ -30,6 +30,8 @@ function credits:initialize(args)
 		handler = '',
 	}
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'credits' end)
+
+	newmusic('audio/music/level1')
 end
 
 function credits:update()

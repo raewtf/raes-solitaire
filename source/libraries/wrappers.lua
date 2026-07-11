@@ -1,7 +1,8 @@
-local pd = playdate
-local gfx = pd.graphics
-local smp = pd.sound.sampleplayer
-local geo = pd.geometry
+local pd <const> = playdate
+local gfx <const> = pd.graphics
+local smp <const> = pd.sound.sampleplayer
+local geo <const> = pd.geometry
+local sub <const> = string.sub
 
 function savegame()
 	pd.datastore.write(save)
@@ -258,25 +259,18 @@ function stopmusic()
 	end
 end
 
-function setmusicvolume(newvol)
-	if music ~= nil then
-		music:setVolume(newvol)
-	end
-end
-
--- New music track. This should be called in a scene's init, only if there's no track leading into it. File is a path to an audio file in the PDX. Loop, if true, will loop the audio file. Range will set the loop's starting range.
-function newmusic(file, loop, range)
-	if save['music' .. save.profile] and music == nil then -- If a music file isn't actively playing...then go ahead and set a new one.
-		music = pd.sound.fileplayer.new(file)
-		if loop then
-			music:setLoopRange(range or 0)
-			music:play(0)
-		else
-			music:play()
-			music:setFinishCallback(function()
-				music = nil
-			end)
+-- New music track. If a track's already playing, it will attempt to lead in naturally.
+function newmusic(file)
+	if save.music then
+		local offset = 0
+		if music ~= nil then
+			offset = music:getOffset()
+			stopmusic()
 		end
+		music = pd.sound.fileplayer.new(file)
+		music:setOffset(offset)
+		music:setLoopRange(0)
+		music:play(0)
 	end
 end
 

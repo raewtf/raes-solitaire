@@ -111,6 +111,7 @@ function klondike:initialize(args)
 		time = 0,
 		moves = 0,
 		box_selection = 1,
+		box_moving = true,
 		extras_width = 0,
 		seen_autocomplete_prompt = false,
 	}
@@ -126,6 +127,8 @@ function klondike:initialize(args)
 	for i = 2, 5 do
 		assets['card_backflip' .. i - 1] = assets.card_back:scaledImage(1.2 - (i * 0.2), 1)
 	end
+
+	newmusic('audio/music/level1')
 
 	afterdelay('transition_delay', transitiontime, function()
 		if vars.continue and save.klondike_snapshot ~= nil then -- continue data found, and we wanna use it. let's plunk it in
@@ -167,23 +170,78 @@ function klondike:initialize(args)
 			local deck = {} -- for initial shuffle
 			local new_deal = false
 
-			for i = 1, 13 do
-				-- add cards to deck, starting at position for deck drop anim during initial shuffle
-				-- only adding if the deck isn't already positioned, though
-				if vars.deck[1] == nil then
-					new_deal = true
-					table.insert(deck, {t = 'clubs', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
-					table.insert(deck, {t = 'diamonds', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
-					table.insert(deck, {t = 'hearts', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
-					table.insert(deck, {t = 'spades', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+			if save.possible then
+				-- adding cards into final banks
+				for i = 1, 13 do
+					if vars.deck[1] == nil then
+						new_deal = true
+						table.insert(vars.banks[1], {t = 'clubs', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+						table.insert(vars.banks[2], {t = 'diamonds', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+						table.insert(vars.banks[3], {t = 'hearts', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+						table.insert(vars.banks[4], {t = 'spades', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+					end
 				end
-			end
 
-			-- shuffle the deck if it's a brand new draw
-			if new_deal then
-				vars.deck = self:shuffle(deck) -- shuffle the deck
-				for i = 1, 52 do
-					vars.deck[i].o = i
+				if new_deal then
+					setRandomSeed(pd.getSecondsSinceEpoch())
+
+					-- sorting the topmost cards from the banks into the slots
+					for i = 1, 7 do
+						for n = i, 7 do
+							local pick_rand = randInt(1, 4)
+							local pick_deck = vars.banks[pick_rand]
+							table.insert(vars.slots[n], pick_deck[#pick_deck])
+							table.remove(pick_deck, #pick_deck)
+						end
+					end
+
+					-- placing the generated slots back into the deck
+					for i = 1, 7 do
+						for n = 1, #vars.slots[i] do
+							table.insert(deck, vars.slots[i][1])
+							table.remove(vars.slots[i], 1)
+						end
+					end
+
+					-- placing the rest of the banked cards into the deck as well
+					local todeck = {}
+
+					for i = 1, 4 do
+						for n = 1, #vars.banks[i] do
+							table.insert(todeck, vars.banks[i][1])
+							table.remove(vars.banks[i], 1)
+						end
+					end
+
+					local twodeck = self:shuffle(todeck)
+					todeck = nil
+
+					for i = 1, #twodeck do
+						table.insert(deck, twodeck[1])
+						table.remove(twodeck, 1)
+					end
+
+					twodeck = nil
+
+					-- shuffling the deck
+					vars.deck = deepcopy(deck)
+				end
+			else
+				for i = 1, 13 do
+					-- add cards to deck, starting at position for deck drop anim during initial shuffle
+					-- only adding if the deck isn't already positioned, though
+					if vars.deck[1] == nil then
+						new_deal = true
+						table.insert(deck, {t = 'clubs', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+						table.insert(deck, {t = 'diamonds', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+						table.insert(deck, {t = 'hearts', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+						table.insert(deck, {t = 'spades', i = i, f = 0, x = 50, y = -150, tf = 0, tx = 50, ty = -150})
+					end
+				end
+
+				-- shuffle the deck if it's a brand new draw
+				if new_deal then
+					vars.deck = self:shuffle(deck) -- shuffle the deck
 				end
 			end
 
@@ -216,7 +274,7 @@ function klondike:initialize(args)
 									if i == #vars.deck then
 										afterdelay('give_input', 700 / (save.anim_speed / 100), function()
 											vars.handler = 'playing'
-											-- NOTE: newmusic()
+											newmusic('audio/music/level4')
 										end)
 									end
 								end
@@ -381,15 +439,16 @@ function klondike:update()
 
 	-- if all the cards are either in the deck or facing upright (and there are no cards in the hand)
 	if facing_up == 52 and save.auto > 0 and (vars.handler ~= '' and not find(vars.handler, 'box')) and not vars.seen_autocomplete_prompt then
-		print('auto-complete eligible!')
 		vars.seen_autocomplete_prompt = true
 		if save.auto == 1 then -- prompt
 			vars.handler = 'box_autocomplete'
 			vars.box_selection = 1
-			resettimer('box', 150, value('box'), 0, 'outSine')
+			newmusic('audio/music/level1')
+			resettimer('box', 150, value('box'), 0, 'outSine', function()
+				vars.box_moving = false
+			end)
 		elseif save.auto == 2 then -- auto
-			-- NOTE: make auto function
-			-- NOTE: run auto function
+			self:auto()
 		end
 	end
 
@@ -448,22 +507,45 @@ function klondike:draw()
 
 	-- draw cards in deck
 	local deck = vars.deck
-	local deck_reverse = vars.deck_reverse
 	local decki
-	local deck_reversei
+	local deckl
 
-	if #deck > 0 and deck[1].f == deck[1].tf then drawimage(assets.stack, deck[1].x - 20, deck[1].y) end -- stack height
-	for i = 1, #deck do
-		decki = deck[i]
-		if ((i == #deck) or (i == #deck - 1)) or (decki.x ~= decki.tx or decki.y ~= decki.ty or decki.f ~= decki.tf) then
-			self:draw_card(decki)
+	if #deck > 0 then
+		if deck[1].f == deck[1].tf then drawimage(assets.stack, deck[1].x - 20, deck[1].y - 1) end
+		for i = 1, #deck do
+			decki = deck[i]
+			if i == 1 then
+				self:draw_card(decki)
+			else
+				if deckl.x == decki.x and deckl.y == decki.y and deckl.f == decki.f then
+					break
+				else
+					self:draw_card(decki)
+				end
+			end
+			deckl = decki
 		end
 	end
-	if #deck_reverse > 0 and deck_reverse[1].f == deck_reverse[1].tf then drawimage(assets.stack, deck_reverse[1].x - 20, deck_reverse[1].y) end -- stack height
-	for i = 1, #deck_reverse do
-		deck_reversei = deck_reverse[i]
-		if ((i == #deck_reverse) or (i == #deck_reverse - 1) or (save.deck_draw == 3 and ((i == #deck_reverse - 3) or (i == #deck_reverse - 4)))) or (deck_reversei.f ~= deck_reversei.tf or deck_reversei.x ~= deck_reversei.tx or deck_reversei.y ~= deck_reversei.ty) then
-			self:draw_card(deck_reversei)
+
+	-- draw cards in reverse deck
+	local deck_reverse = vars.deck_reverse
+	local deck_reversei
+	local deck_reversel
+
+	if #deck_reverse > 0 then
+		if deck_reverse[1].f == deck_reverse[1].tf then drawimage(assets.stack, deck_reverse[1].x - 20, deck_reverse[1].y - 1) end
+		for i = 1, #deck_reverse do
+			deck_reversei = deck_reverse[i]
+			if i == 1 then
+				self:draw_card(deck_reversei)
+			else
+				if deck_reversel.x == deck_reversei.x and deck_reversel.y == deck_reversei.y and deck_reversel.f == deck_reversei.f then
+					break
+				else
+					self:draw_card(deck_reversei)
+				end
+			end
+			deck_reversel = deck_reversei
 		end
 	end
 
@@ -471,14 +553,26 @@ function klondike:draw()
 	local banks = vars.banks
 	local banksi
 	local banksin
+	local banksil
 
 	for i = 1, 4 do
 		banksi = banks[i]
-		if #banksi > 0 then drawimage(assets.stack, banksi[1].x - 20, banksi[1].y) end -- stack height
-		for n = 1, #banksi do
-			banksin = banksi[n]
-			if ((n == #banksi) or (n == #banksi - 1)) or (banksin.f ~= banksin.tf or banksin.x ~= banksin.tx or banksin.y ~= banksin.ty) then
-				self:draw_card(banksin)
+		if #banksi > 0 then
+			drawimage(assets.stack, banksi[1].x - 20, banksi[1].y - 1) -- fake stack for height factor
+			for n = 1, #banksi do
+				banksin = banksi[n]
+				if n == 1 then -- if this is the first card, we should draw it no matter what.
+					self:draw_card(banksin)
+				else
+					if banksil.x == banksin.x and banksil.y == banksin.y then
+						-- if there's a card above this at the same X and Y position, then we know it and everything else is obscured in the stack. skip the rest of the loop
+						break
+					else
+						-- this card is gonna be visible on-screen, and we should draw it.
+						self:draw_card(banksin)
+					end
+				end
+				banksil = banksin
 			end
 		end
 	end
@@ -545,6 +639,8 @@ function klondike:draw()
 		local controls = ''
 		if handler == '' then
 			controls = controls .. text('control_pleasewait')
+		elseif handler == 'auto' then
+			controls = controls .. text('control_auto')
 		else
 			if handler == 'playing' then
 				if selection == 'deck' and not vars.reversing_deck and vars.deck_passes_left > 0 then
@@ -553,7 +649,7 @@ function klondike:draw()
 					else
 						controls = controls .. text('control_draw')
 					end
-				elseif not (selection == 'deck_reverse' and #vars.deck_reverse == 0) and selection ~= 'deck' then
+				elseif (selection == 'deck_reverse' and (#vars.deck_reverse ~= 0 and not vars.reversing_deck)) and selection ~= 'deck' then
 					controls = controls .. text('control_pick')
 				end
 				if save.undo and vars.undo_history[1] ~= nil and not vars.reversing_deck then
@@ -688,24 +784,25 @@ end
 
 -- A button action
 -- NOTE: make sure 3 cards are always shown in the reverse deck (if available) in 3-draw play, after the top one is drawn and placed.
--- NOTE: make sure picking from deck_reverse can't happen if reversing_deck = true
 function klondike:pick_card()
 	local selection_table = self:get_table_from_selection()
 	local hand = vars.hand
 	if (vars.handler == 'playing' or vars.handler == vars.selection) and (#selection_table > 0 and selection_table[#selection_table].tf == 1) and (find(vars.handler, 'slot') or (not find(vars.handler, 'slot')) and #hand == 0) then
-		-- We're picking up a new card! (and adding it to the stack, if necessary)
-		randomizecardsfx(pick1, pick2, pick3, pick4, pick5)
-		vars.handler_x = selection_table[#selection_table].tx
-		selection_table[#selection_table].ty = 200
-		table.insert(hand, selection_table[#selection_table])
-		table.remove(selection_table, #selection_table)
-		for i = 1, #hand do
-			hand[i].tx = (200 - (((i - 0.5) - (#hand / 2)) * (30)))
-		end
-		vars.handler = vars.selection
-		if find(vars.handler, 'slot') then
-			for i = 1, #selection_table do
-				selection_table[i].ty = 80 + ((i - 1) * ((save.control_bar and 75 or 100) / #selection_table))
+		if (vars.selection == 'deck_reverse' and not vars.reversing_deck) or (vars.selection ~= 'deck_reverse') then
+			-- We're picking up a new card! (and adding it to the stack, if necessary)
+			randomizecardsfx(pick1, pick2, pick3, pick4, pick5)
+			vars.handler_x = selection_table[#selection_table].tx
+			selection_table[#selection_table].ty = 200
+			table.insert(hand, selection_table[#selection_table])
+			table.remove(selection_table, #selection_table)
+			for i = 1, #hand do
+				hand[i].tx = (200 - (((i - 0.5) - (#hand / 2)) * (30)))
+			end
+			vars.handler = vars.selection
+			if find(vars.handler, 'slot') then
+				for i = 1, #selection_table do
+					selection_table[i].ty = 80 + ((i - 1) * ((save.control_bar and 75 or 100) / #selection_table))
+				end
 			end
 		end
 	elseif #hand > 0 and vars.selection ~= vars.handler then -- prevent king-starting slots from being put back immediately on one bonus press
@@ -732,6 +829,7 @@ function klondike:pick_card()
 			end
 		end
 	end
+	self:sort_3_card()
 end
 
 -- if match is true, we're putting the card somewhere new (A button action on card match)
@@ -787,7 +885,25 @@ function klondike:put_card_down(match)
 		end
 	end
 	vars.handler = 'playing'
+	self:sort_3_card()
 	self:check_win()
+end
+
+function klondike:sort_3_card()
+	if save.deck_draw == 3 then
+		local deck_reverse = vars.deck_reverse
+		-- move other cards into neat stack on far left edge
+		for i = 0, #deck_reverse do
+			if i ~= 0 then deck_reverse[i].tx = 100 end
+		end
+		-- making sure the X alignment is OK regardless of deck size
+		if #deck_reverse >= 3 then
+			deck_reverse[#deck_reverse - 1].tx = 125
+			deck_reverse[#deck_reverse].tx = 150
+		elseif #deck_reverse == 2 then
+			deck_reverse[#deck_reverse].tx = 125
+		end
+	end
 end
 
 -- check first-level moves for the cards at the top of the stacks on the tableau
@@ -886,6 +1002,7 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 
 					vars.moves += 1
 					self:extras_width()
+					self:sort_3_card()
 					self:check_win()
 					return true
 				end
@@ -908,6 +1025,7 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 
 				vars.moves += 1
 				self:extras_width()
+				self:sort_3_card()
 				self:check_win()
 				return true
 			end
@@ -949,6 +1067,7 @@ function klondike:first_level_move_slots(card, is_stack, selection_table, order)
 
 			vars.moves += 1
 			self:extras_width()
+			self:sort_3_card()
 			return true
 		end
 	end
@@ -972,6 +1091,7 @@ function klondike:check_stack_validity(card1, card2)
 end
 
 function klondike:save_game()
+	-- TODO: save all variable settings into the snapshot
 	save.klondike_snapshot = {}
 	save.klondike_snapshot.deck = deepcopy(vars.deck)
 	save.klondike_snapshot.deck_reverse = deepcopy(vars.deck_reverse)
@@ -1007,12 +1127,14 @@ function klondike:undo()
 					table.remove(deck, #deck)
 					if #deck == 0 then
 						vars.reversing_deck = false
+						self:sort_3_card()
 					end
 				end)
 			end
 		elseif entry.type == 'deck' then
 			local deck = vars.deck
 			local deck_reverse = vars.deck_reverse
+			local cards_flipped = entry.cards_flipped
 
 			randomizecardsfx(put1, put2, put3, put4, put5)
 
@@ -1021,24 +1143,14 @@ function klondike:undo()
 				save.total_deck_passes_klondike -= 1
 				self:extras_width()
 			end
-			if save.deck_draw == 3 then
-				for i = 1, min(#deck_reverse, 3) do
-					deck_reverse[#deck_reverse].tf = 0
-					deck_reverse[#deck_reverse].tx = 50
-					deck_reverse[#deck_reverse].ty = (15 - (#deck * 0.2))
-					table.insert(deck, deck_reverse[#deck_reverse])
-					table.remove(deck_reverse, #deck_reverse)
-				end
-				-- making sure the X alignment is OK regardless of deck size
-				if #deck_reverse >= 1 then deck_reverse[#deck_reverse].tx = 150 end
-				if #deck_reverse >= 2 then deck_reverse[#deck_reverse - 1].tx = 125 end
-			elseif save.deck_draw == 1 then
+			for i = 1, cards_flipped do
 				deck_reverse[#deck_reverse].tf = 0
 				deck_reverse[#deck_reverse].tx = 50
 				deck_reverse[#deck_reverse].ty = (15 - (#deck * 0.2))
 				table.insert(deck, deck_reverse[#deck_reverse])
 				table.remove(deck_reverse, #deck_reverse)
 			end
+			self:sort_3_card()
 		elseif entry.type == 'move_card' then
 			randomizecardsfx(put1, put2, put3, put4, put5)
 
@@ -1097,6 +1209,46 @@ function klondike:undo()
 	end
 end
 
+-- NOTE: finish auto complete function
+function klondike:auto(skip_tableau)
+	vars.handler = 'auto'
+
+	-- set the whole thing on a delay timer
+	-- maybe decrease the amount of delay by a certain amount for every iteration
+	local do_deck_check = skip_tableau or false
+
+	if not skip_tableau then
+		-- check for top-level moves in the tableau
+
+		-- if there's a move to be made, then
+		-- make it
+		-- decrease the delay on the timer
+		-- check for win?
+		-- if win not true then run this function again
+
+		-- if there are no moves to be made with the tableau, then...
+		-- set do_deck_deck to true
+	end
+
+	if do_deck_check then
+		-- flip the deck by 1 (or 3)
+
+		-- if the card on top can go into the bank
+		-- put it there
+		-- decrease the delay on a timer
+		-- check for win?
+		-- if win not true then run this function again
+
+		-- if the card on top can go into a tableau
+		-- put it there
+		-- decrease the delay on a timer
+		-- check for win?
+		-- if win not true then run this function again
+
+		-- if nothing available, run this again with skip_tableau set to true
+	end
+end
+
 function klondike:check_win()
 	won = true
 	for i = 1, 4 do
@@ -1128,12 +1280,16 @@ function klondike:win()
 	afterdelay('windelay', 1000, function()
 		vars.handler = 'box_complete'
 		vars.box_selection = 1
-		resettimer('box', 150, value('box'), 0, 'outSine')
+		newmusic('audio/music/level1')
+		resettimer('box', 150, value('box'), 0, 'outSine', function()
+			vars.box_moving = false
+		end)
 	end)
 	-- NOTE: win sequence
 end
 
 function klondike:redeal(same)
+	newmusic('audio/music/level1')
 	if save.anim_speed > 0 then randomizecardsfx(fan1, fan2, fan3, fan4, fan5) end
 	vars.cursor.ty = 240
 	vars.handler = ''
@@ -1228,7 +1384,7 @@ function klondike:shuffle(tbl)
 end
 
 function klondike:keypressed(button)
-	if vars.handler == 'box_complete' then
+	if vars.handler == 'box_complete' and not vars.box_moving then
 		if button == 'up' then
 			vars.box_selection -= 1
 			if vars.box_selection < 1 then
@@ -1249,10 +1405,12 @@ function klondike:keypressed(button)
 			gfx.sprite.redrawBackground()
 		elseif button == 'a' then
 			if vars.box_selection == 1 then
+				vars.box_moving = true
 				timerendedcallback('box')
 				resettimer('box', 150, value('box'), 1, 'inSine')
 				self:redeal(false)
 			elseif vars.box_selection == 2 then
+				vars.box_moving = true
 				timerendedcallback('box')
 				resettimer('box', 150, value('box'), 1, 'inSine')
 				self:redeal(true)
@@ -1260,7 +1418,7 @@ function klondike:keypressed(button)
 				scenemanager:transitionsceneback(title, 'klondike')
 			end
 		end
-	elseif vars.handler == 'box_autocomplete' then
+	elseif vars.handler == 'box_autocomplete' and not vars.box_moving then
 		if button == 'up' then
 			vars.box_selection -= 1
 			if vars.box_selection < 1 then
@@ -1280,10 +1438,18 @@ function klondike:keypressed(button)
 			end
 			gfx.sprite.redrawBackground()
 		elseif button == 'a' then
+			vars.box_moving = true
 			if vars.box_selection == 1 then
-				-- NOTE: run auto complete function
+				timerendedcallback('box')
+				newmusic('audio/music/level4')
+				resettimer('box', 150, value('box'), 1, 'inSine')
+				self:auto()
 			elseif vars.box_selection == 2 then
-				-- NOTE: don't do auto complete
+				timerendedcallback('box')
+				newmusic('audio/music/level4')
+				resettimer('box', 150, value('box'), 1, 'inSine', function()
+					vars.handler = 'playing'
+				end)
 			end
 		end
 	elseif vars.handler ~= '' then
@@ -1401,11 +1567,9 @@ function klondike:keypressed(button)
 					table.insert(vars.undo_history, {type = 'reverse_deck'})
 				elseif #deck > 0 then
 					randomizecardsfx(pick1, pick2, pick3, pick4, pick5)
+					local cards_flipped = 1
 					if save.deck_draw == 3 then -- 3-draw game
-						-- move other cards into neat stack on far left edge
-						for i = max(#deck_reverse - 2, 0), #deck_reverse do
-							if i ~= 0 then deck_reverse[i].tx = 100 end
-						end
+						cards_flipped = min(#deck, 3)
 						for i = 1, min(#deck, 3) do
 							deck[#deck].tf = 1
 							deck[#deck].tx = 100
@@ -1413,9 +1577,7 @@ function klondike:keypressed(button)
 							table.insert(deck_reverse, deck[#deck])
 							table.remove(deck, #deck)
 						end
-						-- making sure the X alignment is OK regardless of deck size
-						deck_reverse[#deck_reverse - 1].tx = 125
-						deck_reverse[#deck_reverse].tx = 150
+						self:sort_3_card()
 					elseif save.deck_draw == 1 then -- 1-draw game
 						deck[#deck].tf = 1
 						deck[#deck].tx = 100
@@ -1428,7 +1590,7 @@ function klondike:keypressed(button)
 						save.total_deck_passes_klondike += 1
 						self:extras_width()
 					end
-					table.insert(vars.undo_history, {type = 'deck'})
+					table.insert(vars.undo_history, {type = 'deck', cards_flipped = cards_flipped})
 				end
 				vars.moves += 1
 				self:extras_width()

@@ -31,7 +31,7 @@ function title:initialize(args)
 	}
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'title' end)
 
-	-- TODO: newmusic()
+	newmusic('audio/music/level1')
 end
 
 function title:update()

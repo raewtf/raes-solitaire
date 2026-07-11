@@ -31,7 +31,7 @@ function statistics:initialize(args)
 	}
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'statistics' end)
 
-	-- TODO: newmusic()
+	newmusic('audio/music/level1')
 end
 
 function statistics:update()
@@ -39,7 +39,7 @@ function statistics:update()
 end
 
 function statistics:draw()
-	-- NOTE: draw statistics
+	-- TODO: draw statistics
 
 	if save.control_bar then
 		-- drawing control bar
