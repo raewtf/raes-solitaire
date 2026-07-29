@@ -344,6 +344,7 @@ function settings:keypressed(button)
 			elseif cat_sel == 'move_count' then
 				save.move_count = not save.move_count
 			elseif cat_sel == 'control_bar' then
+				-- TODO: nice animation for control bar entry and exit, with a little overshoot. could be fun!
 				save.control_bar = not save.control_bar
 			elseif cat_sel == 'loop' then
 				save.loop = not save.loop

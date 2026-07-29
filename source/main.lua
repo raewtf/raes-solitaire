@@ -228,6 +228,14 @@ end
 -- TODO: catalog page
 -- TODO: itch page
 
+-- TODO: crossfade between musics
+
+-- TODO: more card fronts
+-- TODO: more card backs
+-- TODO: more cursors
+
+-- TODO: potentially a series of tutorial slides on how to play klondike?
+
 function pd.gameWillTerminate()
 	-- TODO: save game capture if mid-play
 	local img = gfx.getDisplayImage()

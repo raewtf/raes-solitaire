@@ -250,8 +250,8 @@ langs = {
 
 		["credits_begin"] = "Thanks for playing Rae's Solitaire!",
 		["credits_main"] = "Rae (that's me) did...\n...the main game art,\nthe programming,\nthe music, and\nthe sound effects.",
-		["credits_guest_decks"] = "Additional card art was made by:\nPowerdive Games, Toad, Scenic Route\nSoftware, Synaptic Sugar,\n",
-		["credits_thanks"] = "With thanks to:\nEli Piilonen for the randomization algo,\npotch and Kenney, for getting me into Klondike,\nthe Playplace for giving me a devlog,\nPanic, as always; and you, for playing!",
+		["credits_guest_decks"] = "Additional card art was made by:\nPowerdive Games, Toad, Scenic Route\nSoftware, and Synaptic Sugar.",
+		["credits_thanks"] = "With thanks to:\nEli Piilonen for the randomization algo,\nFont End Dev for this nice 'Pixolde' font,\npotch and Kenney, for getting me into Klondike,\nthe café, for giving me a devlog to call home,\nPanic, as always; and you, for playing!",
 	}
 }
 

@@ -48,7 +48,7 @@ function credits:draw()
 		drawtext(pixolde, text('credits_begin'), 10, 10)
 		drawtext(pixolde, text('credits_main'), 390, 20, right)
 		drawtext(pixolde, text('credits_guest_decks'), 10, 60)
-		drawtext(pixolde, text('credits_thanks'), 390, 138, right)
+		drawtext(pixolde, text('credits_thanks'), 390, 124, right)
 
 		local controls
 
