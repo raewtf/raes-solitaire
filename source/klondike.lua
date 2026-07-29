@@ -81,7 +81,7 @@ function klondike:initialize(args)
 
 	vars = {
 		deck = args[1] or {}, -- where the reserve cards are. can accept a deck if provided one
-		continue = args[1] or false, -- if true, attempt to read status info from save-data
+		continue = args[2] or false, -- if true, attempt to read status info from save-data
 		deck_reverse = {}, -- where the cards you pull from the deck wind up
 		hand = {}, -- where you hold the cards temporarily
 		banks = {
@@ -132,7 +132,7 @@ function klondike:initialize(args)
 	newmusic('audio/music/level1')
 
 	afterdelay('transition_delay', transitiontime, function()
-		if vars.continue and save.klondike_snapshot ~= nil then -- continue data found, and we wanna use it. let's plunk it in
+		if (vars.continue == true and save.klondike_snapshot ~= nil) then -- continue data found, and we wanna use it. let's plunk it in
 			-- TODO: entrance animation for cards
 			vars.undo_history = deepcopy(save.klondike_snapshot.undo_history)
 			vars.deck = deepcopy(save.klondike_snapshot.deck)
@@ -827,6 +827,36 @@ function klondike:get_table_from_handler(cursor)
 	return table, cursor and modifier
 end
 
+function klondike:get_handler_from_table(table)
+	local handler
+	if table == vars.deck_reverse then
+		handler = 'deck_reverse'
+	elseif table == vars.banks[1] then
+		handler = 'bank1'
+	elseif table == vars.banks[2] then
+		handler = 'bank2'
+	elseif table == vars.banks[3] then
+		handler = 'bank3'
+	elseif table == vars.banks[4] then
+		handler = 'bank4'
+	elseif table == vars.slots[1] then
+		handler = 'slot1'
+	elseif table == vars.slots[2] then
+		handler = 'slot2'
+	elseif table == vars.slots[3] then
+		handler = 'slot3'
+	elseif table == vars.slots[4] then
+		handler = 'slot4'
+	elseif table == vars.slots[5] then
+		handler = 'slot5'
+	elseif table == vars.slots[6] then
+		handler = 'slot6'
+	elseif table == vars.slots[7] then
+		handler = 'slot7'
+	end
+	return handler
+end
+
 -- A button action
 function klondike:pick_card()
 	local selection_table = self:get_table_from_selection()
@@ -1029,6 +1059,8 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 			if #vars.banks[i] > 0 then
 				local compare_card = vars.banks[i][#vars.banks[i]]
 				if (card.t == compare_card.t) and (compare_card.i + 1 == card.i) then
+					-- NOTE: add undo step
+
 					-- move card
 					selection_table[#selection_table].tx = 150 + (i * 50)
 					selection_table[#selection_table].ty = 15 - (#vars.banks[i] * 0.2)
@@ -1046,12 +1078,15 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 					randomizecardsfx(put1, put2, put3, put4, put5)
 
 					vars.moves += 1
+
 					self:extras_width()
 					self:sort_3_card()
 					self:check_win()
 					return true
 				end
 			elseif card.i == 1 then -- bank is empty and this card can start it
+				-- NOTE: add undo step
+
 				-- move card
 				selection_table[#selection_table].tx = 150 + (i * 50)
 				selection_table[#selection_table].ty = 15 - (#vars.banks[i] * 0.2)
@@ -1069,6 +1104,7 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 				randomizecardsfx(put1, put2, put3, put4, put5)
 
 				vars.moves += 1
+
 				self:extras_width()
 				self:sort_3_card()
 				self:check_win()
@@ -1084,6 +1120,17 @@ function klondike:first_level_move_slots(card, is_stack, selection_table, order)
 		-- check validity against top card in stack
 		-- also allow if the slot is empty and the card is a king
 		if (#vars.slots[i] > 0 and self:check_stack_validity(card, vars.slots[i][#vars.slots[i]])) or (#vars.slots[i] == 0 and card.i == 13) then
+			-- calculate if there's an existing stack at the destination, for undo
+			-- NOTE: make sure flipping works properly for stack movements
+			local existingstack = true
+			if #selection_table > 1 and selection_table[#selection_table - 1].tf ~= 1 then
+				existingstack = false
+			end
+			print(existingstack)
+
+			-- add undo step
+			table.insert(vars.undo_history, {type = 'move_card', whereitisnow = vars.slots[i], itsposition = #vars.slots[i] + 1, whereitshouldgo = selection_table, whereitisnow_existingstack = existingstack, handler = self:get_handler_from_table(selection_table)})
+
 			-- move card(s)
 			local order_end = #selection_table
 			for n = (order ~= nil and order or order_end), order_end do
@@ -1157,8 +1204,6 @@ function klondike:save_game()
 	savegame()
 end
 
--- NOTE: undo is broken when handling moves made with crank
--- NOTE: take a particular look into stack-based crank moves and undo
 function klondike:undo()
 	if save.undo and #vars.undo_history > 0 and not vars.reversing_deck then
 		local entry = vars.undo_history[#vars.undo_history]
@@ -1221,7 +1266,6 @@ function klondike:undo()
 				if find(handler, 'bank') then
 					calc_x = 150 + ((string.sub(handler, -1)) * 50)
 				elseif find(handler, 'slot') then
-
 					calc_x = 200 + ((string.sub(handler, -1) - 4) * 50)
 				elseif find(handler, 'deck_reverse') then
 					calc_x = 100
@@ -1234,7 +1278,6 @@ function klondike:undo()
 			for i = pos, now_len do
 				now[pos].tx = calc_x
 				-- calculate Y placement
-				-- BUG: undoing single move to bank will splay bank out over the tableau
 				if find(handler, 'slot') then
 					now[pos].ty = 80 + (#go * 10)
 				else
@@ -1246,6 +1289,7 @@ function klondike:undo()
 					for n = 1, #go do
 						go[n].ty = 80 + ((n - 1) * ((save.control_bar and 75 or 100) / #go))
 					end
+					-- NOTE: vvv only perform this move if now itself is a slot and not a bank or whatever vvv
 					for n = 1, #now do
 						now[n].ty = 80 + ((n - 1) * ((save.control_bar and 75 or 100) / #now))
 					end
@@ -1410,7 +1454,7 @@ function klondike:redeal(same)
 		vars.hand[i].tf = 0
 	end
 	afterdelay('redeal', 600 / (save.anim_speed / 100), function()
-		scenemanager:switchscene(klondike, same and vars.deal)
+		scenemanager:switchscene(klondike, same and vars.deal, false)
 	end)
 end
 
@@ -1546,7 +1590,7 @@ function klondike:keypressed(button)
 				end)
 			end
 		end
-	elseif vars.handler ~= '' then
+	elseif vars.handler ~= '' and vars.handler ~= 'auto' then
 		if button == 'up' then
 			if vars.selection == 'slot1' then
 				vars.selection = 'deck'

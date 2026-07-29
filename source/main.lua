@@ -30,6 +30,7 @@ version = pd.metadata.version
 if pd.metadata.bundleID == 'wtf.rae.solitaire' then catalog = true end
 
 pd.display.setRefreshRate(30)
+-- TODO: do i need to flip this for a smooth launch animation?
 setbackgroundcolor('white')
 gfx.setLineWidth(2)
 -- TODO: calculate dirty rects properly in each scene
@@ -66,7 +67,7 @@ function savecheck()
 	-- klondike rules
 	save.deck_draw = save.deck_draw or 1 -- 1- or 3-draw
 	if save.undo == nil then save.undo = true end -- undo
-	if save.possible == nil then save.possible = true end -- guarantee possible games
+	if save.possible == nil then save.possible = false end -- guarantee possible games
 	save.auto = save.auto or 1 -- auto-complete upon all cards being revealed
 	save.crank = save.crank or 1 -- crank-to-complete
 	if save.quickpick == nil then save.quickpick = true end -- quick-pick
@@ -224,9 +225,9 @@ function commalize(amount)
 end
 
 -- TODO: write manual
--- TODO: write game description for store pages
--- TODO: catalog page
--- TODO: itch page
+-- TODO: set up catalog page
+-- TODO: publicize github page
+-- TODO: publicize itch page
 
 -- TODO: crossfade between musics
 
