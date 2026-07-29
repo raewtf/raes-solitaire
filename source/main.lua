@@ -85,13 +85,15 @@ function savecheck()
 	-- statistics
 	save.playtime = save.playtime or 0
 
+	save.gametime_klondike = save.gametime_klondike or 0
 	save.games_played_klondike = save.games_played_klondike or 0
 	save.games_won_klondike = save.games_won_klondike or 0
 	save.best_time_klondike = save.best_time_klondike or 0
 	save.lowest_moves_klondike = save.lowest_moves_klondike or 0
+	save.total_moves_klondike = save.total_moves_klondike or 0
+	save.total_undos_klondike = save.total_undos_klondike or 0
 	save.least_deck_passes_klondike = save.least_deck_passes_klondike or 0
 	save.total_deck_passes_klondike = save.total_deck_passes_klondike or 0
-	save.gametime_klondike = save.gametime_klondike or 0
 
 	-- TODO: hook up statistics for pickup
 	save.games_played_pickup = save.games_played_pickup or 0
@@ -234,6 +236,8 @@ end
 -- TODO: more card fronts
 -- TODO: more card backs
 -- TODO: more cursors
+
+-- TODO: add back slide menu buttons in secondary menus
 
 -- TODO: potentially a series of tutorial slides on how to play klondike?
 

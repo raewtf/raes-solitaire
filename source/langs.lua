@@ -35,16 +35,57 @@ langs = {
 
 
 
-		["statistics_playtime"] = "Play time",
+		["statistics_all_modes"] = "All Modes",
+		["statistics_klondike"] = "Klondike",
+		["statistics_pickup"] = "52-Pickup",
 
-		["statistics_games_played"] = "Games played: ",
-		["statistics_games_won"] = "Games won: ",
-		["statistics_best_time"] = "Best time: ",
-		["statistics_lowest_moves"] = "Lowest moves: ",
+
+		["statistics_playtime"] = "Total play time: ",
+		["h"] = " hours, ",
+		["m"] = " minutes, and ",
+		["s"] = " seconds",
+		["h1"] = " hour, ",
+		["m1"] = " minute, and ",
+		["s1"] = " second",
+
+		["na"] = "[Nothing to report yet!]",
+
+		["statistics_games_played"] = "Total games played: ",
+		["statistics_played"] = " games played",
+		["statistics_play"] = " game played",
+
+		["statistics_games_won"] = "Total games won: ",
+		["statistics_won"] = " games won",
+		["statistics_win"] = " game won",
+
+		["statistics_win_rate"] = "Win rate: ",
+		["statistics_rate"] = "% of games won",
+
+		["statistics_best_time"] = "Best time in a game: ",
+
+		["statistics_lowest_moves"] = "Fewest moves in a game: ",
+		["statistics_total_moves"] = "Total moves made: ",
+		["statistics_moves_minus_undos"] = "Total moves minus total undos: ",
+		["statistics_moves"] = " moves",
+		["statistics_move"] = " moves",
+
+		["statistics_total_undos"] = "Total undos made: ",
+		["statistics_undos"] = " undos",
+		["statistics_undo"] = " undo",
+
+		["statistics_least_deck_passes"] = "Least deck passes in a game: ",
 		["statistics_total_deck_passes"] = "Total deck passes: ",
-		["statistics_gametime"] = "Play time: ",
-		["statistics_countups"] = "Count-ups: ",
-		["statistics_countdowns"] = "Count-downs: ",
+		["statistics_deck_passes"] = " deck passes",
+		["statistics_deck_pass"] = " deck pass",
+
+
+		["statistics_countups"] = "Total count-ups: ",
+		["statistics_ups"] = " count-ups",
+		["statistics_up"] = " count-up",
+
+		["statistics_countdowns"] = "Total count-downs: ",
+		["statistics_downs"] = " count-downs",
+		["statistics_down"] = " count-down",
 
 
 

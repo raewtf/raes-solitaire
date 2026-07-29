@@ -939,6 +939,8 @@ function klondike:put_card_down(match)
 		end
 
 		vars.moves += 1
+		save.total_moves_klondike += 1
+
 		self:extras_width()
 
 		table.insert(vars.undo_history, {type = 'move_card', whereitisnow = selection_table, itsposition = #selection_table + 1, whereitshouldgo = self:get_table_from_handler(true), whereitisnow_existingstack = existingstack, handler = vars.handler})
@@ -1059,7 +1061,14 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 			if #vars.banks[i] > 0 then
 				local compare_card = vars.banks[i][#vars.banks[i]]
 				if (card.t == compare_card.t) and (compare_card.i + 1 == card.i) then
-					-- NOTE: add undo step
+					local existingstack = true
+					if #selection_table > 1 and selection_table[#selection_table - 1].tf ~= 1 then
+						existingstack = false
+					end
+					print(existingstack)
+
+					-- add undo step
+					table.insert(vars.undo_history, {type = 'move_card', whereitisnow = vars.banks[i], itsposition = #vars.banks[i] + 1, whereitshouldgo = selection_table, whereitisnow_existingstack = existingstack, handler = self:get_handler_from_table(selection_table)})
 
 					-- move card
 					selection_table[#selection_table].tx = 150 + (i * 50)
@@ -1078,6 +1087,7 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 					randomizecardsfx(put1, put2, put3, put4, put5)
 
 					vars.moves += 1
+					save.total_moves_klondike += 1
 
 					self:extras_width()
 					self:sort_3_card()
@@ -1085,7 +1095,14 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 					return true
 				end
 			elseif card.i == 1 then -- bank is empty and this card can start it
-				-- NOTE: add undo step
+				local existingstack = true
+				if #selection_table > 1 and selection_table[#selection_table - 1].tf ~= 1 then
+					existingstack = false
+				end
+				print(existingstack)
+
+				-- add undo step
+				table.insert(vars.undo_history, {type = 'move_card', whereitisnow = vars.banks[i], itsposition = #vars.banks[i] + 1, whereitshouldgo = selection_table, whereitisnow_existingstack = existingstack, handler = self:get_handler_from_table(selection_table)})
 
 				-- move card
 				selection_table[#selection_table].tx = 150 + (i * 50)
@@ -1104,6 +1121,7 @@ function klondike:first_level_move_banks(card, is_stack, selection_table, order)
 				randomizecardsfx(put1, put2, put3, put4, put5)
 
 				vars.moves += 1
+				save.total_moves_klondike += 1
 
 				self:extras_width()
 				self:sort_3_card()
@@ -1121,12 +1139,15 @@ function klondike:first_level_move_slots(card, is_stack, selection_table, order)
 		-- also allow if the slot is empty and the card is a king
 		if (#vars.slots[i] > 0 and self:check_stack_validity(card, vars.slots[i][#vars.slots[i]])) or (#vars.slots[i] == 0 and card.i == 13) then
 			-- calculate if there's an existing stack at the destination, for undo
-			-- NOTE: make sure flipping works properly for stack movements
 			local existingstack = true
-			if #selection_table > 1 and selection_table[#selection_table - 1].tf ~= 1 then
-				existingstack = false
+			print('---')
+			print(#selection_table)
+			print(order)
+			if order ~= nil then
+				if ((#selection_table > order) or (order > 1)) and (order - 1 > 0) and selection_table[order - 1].tf ~= 1 then
+					existingstack = false
+				end
 			end
-			print(existingstack)
 
 			-- add undo step
 			table.insert(vars.undo_history, {type = 'move_card', whereitisnow = vars.slots[i], itsposition = #vars.slots[i] + 1, whereitshouldgo = selection_table, whereitisnow_existingstack = existingstack, handler = self:get_handler_from_table(selection_table)})
@@ -1158,6 +1179,8 @@ function klondike:first_level_move_slots(card, is_stack, selection_table, order)
 			randomizecardsfx(put1, put2, put3, put4, put5)
 
 			vars.moves += 1
+			save.total_moves_klondike += 1
+
 			self:extras_width()
 			self:sort_3_card()
 			return true
@@ -1207,6 +1230,7 @@ end
 function klondike:undo()
 	if save.undo and #vars.undo_history > 0 and not vars.reversing_deck then
 		local entry = vars.undo_history[#vars.undo_history]
+		save.total_undos_klondike += 1
 		if entry.type == 'reverse_deck' then
 			local deck = vars.deck
 			local deck_reverse = vars.deck_reverse
@@ -1285,13 +1309,18 @@ function klondike:undo()
 				end
 				table.insert(go, now[pos])
 				table.remove(now, pos)
-				if i == now_len and find(handler, 'slot') then
-					for n = 1, #go do
-						go[n].ty = 80 + ((n - 1) * ((save.control_bar and 75 or 100) / #go))
+				if i == now_len then
+					local go_handler = self:get_handler_from_table(go)
+					local now_handler = self:get_handler_from_table(now)
+					if find(go_handler, 'slot') then
+						for n = 1, #go do
+							go[n].ty = 80 + ((n - 1) * ((save.control_bar and 75 or 100) / #go))
+						end
 					end
-					-- NOTE: vvv only perform this move if now itself is a slot and not a bank or whatever vvv
-					for n = 1, #now do
-						now[n].ty = 80 + ((n - 1) * ((save.control_bar and 75 or 100) / #now))
+					if find(now_handler, 'slot') then
+						for n = 1, #now do
+							now[n].ty = 80 + ((n - 1) * ((save.control_bar and 75 or 100) / #now))
+						end
 					end
 				end
 			end
@@ -1371,6 +1400,8 @@ function klondike:auto(skip_tableau, timer_delay)
 				end
 			end
 			vars.moves += 1
+			save.total_moves_klondike += 1
+
 			self:extras_width()
 
 			self:auto(false, timer_delay)
@@ -1731,6 +1762,8 @@ function klondike:keypressed(button)
 					table.insert(vars.undo_history, {type = 'deck', cards_flipped = cards_flipped})
 				end
 				vars.moves += 1
+				save.total_moves_klondike += 1
+
 				self:extras_width()
 			elseif vars.selection ~= 'deck' then
 				self:pick_card()

@@ -54,7 +54,7 @@ function title:initialize(args)
 	if save.seenpickup then
 		-- TODO: table.insert(vars.selections, 'pickup')
 	end
-	-- TODO: table.insert(vars.selections, 'statistics')
+	table.insert(vars.selections, 'statistics')
 	if catalog then
 		-- TODO: table.insert(vars.selections, 'highscores')
 	end
