@@ -2,13 +2,16 @@ local pd <const> = playdate
 local gfx <const> = pd.graphics
 local center <const> = kTextAlignment.center
 local right <const> = kTextAlignment.right
+local find <const> = string.find
 local format <const> = string.format
 local floor <const> = math.floor
 local ceil <const> = math.ceil
 
-import 'settings'
 import 'klondike'
+import 'pickup'
 import 'statistics'
+import 'highscores'
+import 'settings'
 import 'credits'
 
 class('title').extends(gfx.sprite)
@@ -29,11 +32,14 @@ function title:init(...)
 	self:add()
 end
 
+-- TODO: 52-pickup how-to-play slides
+
 function title:initialize(args)
 	assets = {
 		logo = newimage('images/logo'),
 		accent_small = newimage('images/accent_small'),
 		accent_large = newimage('images/accent_large'),
+		battery = newimagetable('images/battery'),
 	}
 
 	vars = {
@@ -44,19 +50,32 @@ function title:initialize(args)
 		selection = 1,
 		hit_edge = false,
 		cards_offset = 0,
+		sequence = {'right', 'up', 'b', 'down', 'up', 'b', 'down', 'up', 'b'},
+		sequenceindex = 1,
+		howtoplay_step = 1,
+		howtoplay_klondike_max = 6,
+		howtoplay_pickup_max = 2,
 	}
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'title' end)
 
 	if save.snapshot ~= nil then
-		-- TODO: table.insert(vars.selections, 'continue')
+		table.insert(vars.selections, 'continue')
 	end
+
+	-- prepping box for potential pop-up
+	assets.box = newimage('images/box')
+	vars.box_selection = 1
+	vars.box_moving = true
+	vars.box_hit_edge = false
+	newtimer('box', 0, 1, 1)
+
 	table.insert(vars.selections, 'klondike')
 	if save.seenpickup then
-		-- TODO: table.insert(vars.selections, 'pickup')
+		table.insert(vars.selections, 'pickup')
 	end
 	table.insert(vars.selections, 'statistics')
 	if catalog then
-		-- TODO: table.insert(vars.selections, 'highscores')
+		table.insert(vars.selections, 'highscores')
 	end
 	table.insert(vars.selections, 'settings')
 	table.insert(vars.selections, 'credits')
@@ -71,60 +90,94 @@ function title:initialize(args)
 	end
 
 	if vars.fade_in then
-		newtimer('fade', 250, 1, 0, 'linear', function()
-			gfx.sprite.redrawBackground()
-		end)
+		newtimer('fade', 250, 1, 0, 'linear')
 	else
 		newtimer('fade', 0, 0, 0)
 	end
 
 	loopingtimer('cards', 120000, 0, -2340)
 
-	-- TODO: rubdubdub on title screen activates 52 pickup mode
-	newmusic('audio/music/level2')
+	set_music_level(2)
 end
 
 function title:update()
 	if pd.buttonJustPressed('up') then self:keypressed('up') end
 	if pd.buttonJustPressed('down') then self:keypressed('down') end
+	if pd.buttonJustPressed('left') then self:keypressed('left') end
+	if pd.buttonJustPressed('right') then self:keypressed('right') end
+	if pd.buttonJustPressed('b') then self:keypressed('b') end
 	if pd.buttonJustPressed('a') then self:keypressed('a') end
 
-	gfx.sprite.addDirtyRect(0, 150 + (save.control_bar and 0 or 20), 400, 70)
-
-	if value('fade') > 0 then
-		gfx.sprite.redrawBackground()
+	if vars.sequenceindex > #vars.sequence and not save.seenpickup then
+		-- TODO: save.seenpickup = true
+		-- TODO: playsound(win)
+		-- TODO: duck music for win SFX
+		--[[ TODO:
+		for i = 1, #vars.selections do
+			if vars.selections[i] == 'klondike' then
+				table.insert(vars.selections, i + 1, 'pickup')
+				break
+			end
+		end
+		]]
 	end
 
-	vars.cards_offset -= (pd.getCrankChange() / 2)
+	vars.cards_offset -= pd.getCrankChange()
 
 	local ticks = pd.getCrankTicks(4)
 
-	if ticks > 0 then
-		vars.selection += 1
-		if vars.selection > #vars.selections then
-			vars.selection = #vars.selections
-			if not vars.hit_edge then
-				vars.hit_edge = true
-				playsound(doink)
+	if vars.handler == 'box_inprogress' and not vars.box_moving then
+		if ticks > 0 then
+			vars.box_selection += 1
+			if vars.box_selection > 2 then
+				vars.box_selection = 2
+				if not vars.box_hit_edge then
+					vars.box_hit_edge = true
+					playsound(doink)
+				end
+			else
+				playsound(move)
+				vars.box_hit_edge = false
 			end
-		else
-			playsound(move)
-			vars.hit_edge = false
-		end
-		gfx.sprite.redrawBackground()
-	elseif ticks < 0 then
-		vars.selection -= 1
-		if vars.selection < 1 then
-			vars.selection = 1
-			if not vars.hit_edge then
-				vars.hit_edge = true
-				playsound(doink)
+		elseif ticks < 0 then
+			vars.box_selection -= 1
+			if vars.box_selection < 1 then
+				vars.box_selection = 1
+				if not vars.box_hit_edge then
+					vars.box_hit_edge = true
+					playsound(doink)
+				end
+			else
+				playsound(move)
+				vars.box_hit_edge = false
 			end
-		else
-			playsound(move)
-			vars.hit_edge = false
 		end
-		gfx.sprite.redrawBackground()
+	else
+		if ticks > 0 then
+			vars.selection += 1
+			if vars.selection > #vars.selections then
+				vars.selection = #vars.selections
+				if not vars.hit_edge then
+					vars.hit_edge = true
+					playsound(doink)
+				end
+			else
+				playsound(move)
+				vars.hit_edge = false
+			end
+		elseif ticks < 0 then
+			vars.selection -= 1
+			if vars.selection < 1 then
+				vars.selection = 1
+				if not vars.hit_edge then
+					vars.hit_edge = true
+					playsound(doink)
+				end
+			else
+				playsound(move)
+				vars.hit_edge = false
+			end
+		end
 	end
 end
 
@@ -171,9 +224,48 @@ function title:draw()
 		drawimage(assets.accent_small, 276, 0)
 
 		for i = 1, #vars.selections do
-			drawtext(vars.selection == i and pixolde_italic or pixolde, text('title_' .. vars.selections[i]), 340, 63 + ((i - (#vars.selections / 2)) * 15), center)
+			drawtext(vars.selection == i and pixolde_bold or pixolde, text('title_' .. vars.selections[i]), 338, 63 + ((i - (#vars.selections / 2)) * 15), center)
 		end
+	else
+		drawimage(assets.accent_large, 260, 0)
 
+		for i = 1, #vars.selections do
+			drawtext(vars.selection == i and pixolde_bold or pixolde, text('title_' .. vars.selections[i]), 331, 73 + ((i - (#vars.selections / 2)) * 15), center)
+		end
+	end
+
+	-- draw dialog box, if available
+	if value('box') < 1 then
+		setcolor(0, 0, 0, (-value('box') + 1) * 0.75, 'black')
+		fillrect(0, 0, 400, 240)
+
+		local box_offset = (value('box') * 200) + (save.control_bar and -10 or 0)
+
+		drawimage(assets.box, 79, 39 + box_offset)
+
+		if vars.handler == 'box_inprogress' then
+			drawtext(pixolde_bold, text('box_inprogress'), 200, 65 + box_offset, center)
+			drawtext(pixolde, text('box_inprogress_desc'), 200, 85 + box_offset, center)
+			drawtext(vars.box_selection == 1 and pixolde_bold or pixolde, text('box_newgame'), 200, 140 + box_offset, center)
+			drawtext(vars.box_selection == 2 and pixolde_bold or pixolde, text('box_nevermind'), 200, 155 + box_offset, center)
+		elseif find(vars.handler, 'howtoplay_') then
+			if vars.handler == 'howtoplay_klondike' then
+				if vars.howtoplay_step == 4 or vars.howtoplay_step == 5 then
+					drawtext(pixolde_bold, text(vars.handler .. '_standard_scoring'), 200, 68 + box_offset, center)
+				elseif vars.howtoplay_step == 6 then
+					drawtext(pixolde_bold, text(vars.handler .. '_vegas_scoring'), 200, 68 + box_offset, center)
+				else
+					drawtext(pixolde_bold, text(vars.handler), 200, 68 + box_offset, center)
+				end
+			else
+				drawtext(pixolde_bold, text(vars.handler), 200, 68 + box_offset, center)
+			end
+			drawtext(pixolde, text(vars.handler .. '_' .. vars.howtoplay_step), 200, 88 + box_offset, center)
+			drawtext(pixolde, '(' .. vars.howtoplay_step .. '/' .. vars[vars.handler .. '_max'] .. ')', 295, 182 + box_offset, right)
+		end
+	end
+
+	if save.control_bar then
 		-- drawing control bar
 		setcolor(0, 0, 0, 1, 'black')
 		fillrect(0, 220, 400, 20)
@@ -184,9 +276,21 @@ function title:draw()
 		-- parsing controls based on context
 		if vars.handler == '' then
 			controls = text('control_pleasewait')
+		elseif vars.handler == 'box_inprogress' then
+			controls = text('control_move_vert') .. text('control_select') .. text('control_back')
+		elseif find(vars.handler, 'howtoplay_') then
+			if vars.howtoplay_step == vars[vars.handler .. '_max'] then
+				controls = text('control_howtoplay_previous') .. text('control_howtoplay_close_a')
+			elseif vars.howtoplay_step > 1 then
+				controls = text('control_howtoplay_previous') .. text('control_howtoplay_next')
+			else
+				controls = text('control_howtoplay_close_b') .. text('control_howtoplay_next')
+			end
 		else
 			controls = text('control_move_vert')
-			if vars.selections[vars.selection] == 'klondike' or vars.selections[vars.seelction] == 'pickup' then
+			if vars.selections[vars.selection] == 'klondike' or vars.selections[vars.selection] == 'pickup' then
+				controls = controls .. text('control_play') .. text('control_howtoplay')
+			elseif vars.selections[vars.selection] == 'continue' then
 				controls = controls .. text('control_play')
 			else
 				controls = controls .. text('control_select')
@@ -197,13 +301,21 @@ function title:draw()
 		local time = gettime()
 		local hour = time.hour
 		local minute = time.minute
-		drawtext(pixolde_inverted, (pd.shouldDisplay24HourTime() and (format("%02d:%02d", hour, minute)) or (format("%01d:%02d", ((hour % 12) == 0 and 12 or (hour % 12)), minute)) .. (hour < 12 and 'a' or 'p')), 395, 223, right)
-	else
-		drawimage(assets.accent_large, 260, 0)
+		drawtext(pixolde_inverted, (is24hour() and (format("%02d:%02d", hour, minute)) or (format("%01d:%02d", ((hour % 12) == 0 and 12 or (hour % 12)), minute)) .. (hour < 12 and 'a' or 'p')), 373, 223, right)
 
-		for i = 1, #vars.selections do
-			drawtext(vars.selection == i and pixolde_italic or pixolde, text('title_' .. vars.selections[i]), 331, 73 + ((i - (#vars.selections / 2)) * 15), center)
+		local bat_stat = pd.getPowerStatus()
+		if bat_stat.charging then
+			if bat_stat.screws then
+				drawimagetable(assets.battery, 7, 380, 225)
+			else
+				drawimagetable(assets.battery, 6, 380, 225)
+			end
+		else
+			local battery = pd.getBatteryPercentage()
+			drawimagetable(assets.battery, ceil(battery / 20), 380, 225)
 		end
+	else
+		setcolor(255, 255, 255, 1, 'black')
 	end
 
 	if timeleft('fade') > 0 then
@@ -211,13 +323,100 @@ function title:draw()
 		fillrect(0, 0, 400, 240)
 		setcolor(255, 255, 255, 1, 'black')
 	end
-
-
 end
 
 function title:keypressed(button)
-	if vars.handler == 'title' then
+	if vars.handler == 'box_inprogress' and not vars.box_moving then
 		if button == 'up' then
+			vars.box_selection -= 1
+			if vars.box_selection < 1 then
+				vars.box_selection = 1
+				playsound(doink)
+			else
+				playsound(move)
+				vars.box_hit_edge = false
+			end
+		elseif button == 'down' then
+			vars.box_selection += 1
+			if vars.box_selection > 2 then
+				vars.box_selection = 2
+				playsound(doink)
+			else
+				playsound(move)
+				vars.box_hit_edge = false
+			end
+		elseif button == 'a' then
+			playsound(accept)
+			if vars.box_selection == 1 then
+				vars.box_moving = true
+				timerendedcallback('box')
+				resettimer('box', 150, value('box'), 1, 'inSine', function()
+					save.snapshot = nil
+					scenemanager:transitionscene(klondike)
+				end)
+			elseif vars.box_selection == 2 then
+				playsound(accept)
+				vars.box_moving = true
+				timerendedcallback('box')
+				set_music_level(2)
+				resettimer('box', 150, value('box'), 1, 'inSine', function()
+					vars.handler = 'title'
+				end)
+			end
+		elseif button == 'b' then
+			playsound(bump)
+			vars.box_moving = true
+			timerendedcallback('box')
+			set_music_level(2)
+			resettimer('box', 150, value('box'), 1, 'inSine', function()
+				vars.handler = 'title'
+			end)
+		end
+	elseif find(vars.handler, 'howtoplay_') and not vars.box_moving then
+		local max = vars[vars.handler .. '_max']
+		if vars.howtoplay_step == max then
+			if button == 'left' or button == 'b' then
+				playsound(move)
+				vars.howtoplay_step -= 1
+			elseif button == 'right' or button == 'a' then
+				playsound(bump)
+				vars.box_moving = true
+				timerendedcallback('box')
+				set_music_level(2)
+				resettimer('box', 150, value('box'), 1, 'inSine', function()
+					vars.handler = 'title'
+				end)
+			end
+		elseif vars.howtoplay_step > 1 then
+			if button == 'left' or button == 'b' then
+				playsound(move)
+				vars.howtoplay_step -= 1
+			elseif button == 'right' or button == 'a' then
+				playsound(move)
+				vars.howtoplay_step += 1
+			end
+		else
+			if button == 'left' or button == 'b' then
+				playsound(bump)
+				vars.box_moving = true
+				timerendedcallback('box')
+				set_music_level(2)
+				resettimer('box', 150, value('box'), 1, 'inSine', function()
+					vars.handler = 'title'
+				end)
+			elseif button == 'right' or button == 'a' then
+				playsound(move)
+				vars.howtoplay_step += 1
+			end
+		end
+	elseif vars.handler == 'title' then
+		if button == 'up' then
+			if vars.sequence[vars.sequenceindex] == 'up' then
+				vars.sequenceindex += 1
+			else
+				vars.sequenceindex = 1
+			end
+
 			vars.selection -= 1
 			if vars.selection < 1 then
 				vars.selection = 1
@@ -226,8 +425,13 @@ function title:keypressed(button)
 				playsound(move)
 				vars.hit_edge = false
 			end
-			gfx.sprite.redrawBackground()
 		elseif button == 'down' then
+			if vars.sequence[vars.sequenceindex] == 'down' then
+				vars.sequenceindex += 1
+			else
+				vars.sequenceindex = 1
+			end
+
 			vars.selection += 1
 			if vars.selection > #vars.selections then
 				vars.selection = #vars.selections
@@ -236,13 +440,63 @@ function title:keypressed(button)
 				playsound(move)
 				vars.hit_edge = false
 			end
-			gfx.sprite.redrawBackground()
+		elseif button == 'left' then
+			if vars.sequence[vars.sequenceindex] == 'left' then
+				vars.sequenceindex += 1
+			else
+				vars.sequenceindex = 1
+			end
+		elseif button == 'right' then
+			if vars.sequence[vars.sequenceindex] == 'right' then
+				vars.sequenceindex += 1
+			else
+				vars.sequenceindex = 1
+			end
+
+			if vars.selections[vars.selection] == 'klondike' then
+				vars.handler = 'howtoplay_klondike'
+				vars.howtoplay_step = 1
+				set_music_level(1)
+				resettimer('box', 150, value('box'), 0, 'outSine', function()
+					vars.box_moving = false
+				end)
+				playsound(accept)
+			elseif vars.selections[vars.selection] == 'pickup' then
+				vars.handler = 'howtoplay_pickup'
+				vars.howtoplay_step = 1
+				set_music_level(1)
+				resettimer('box', 150, value('box'), 0, 'outSine', function()
+					vars.box_moving = false
+				end)
+				playsound(accept)
+			end
+		elseif button == 'b' then
+			if vars.sequence[vars.sequenceindex] == 'b' then
+				vars.sequenceindex += 1
+			else
+				vars.sequenceindex = 1
+			end
 		elseif button == 'a' then
+			if vars.sequence[vars.sequenceindex] == 'a' then
+				vars.sequenceindex += 1
+			else
+				vars.sequenceindex = 1
+			end
+
 			if vars.selections[vars.selection] == 'continue' then
 				scenemanager:transitionscene(klondike, {}, true)
 			elseif vars.selections[vars.selection] == 'klondike' then
-				-- TODO: dialog box "are you sure?" if continue point exists
-				scenemanager:transitionscene(klondike)
+				if save.snapshot ~= nil then
+					-- game in progress
+					vars.handler = 'box_inprogress'
+					vars.box_selection = 1
+					set_music_level(1)
+					resettimer('box', 150, value('box'), 0, 'outSine', function()
+						vars.box_moving = false
+					end)
+				else
+					scenemanager:transitionscene(klondike)
+				end
 			elseif vars.selections[vars.selection] == 'pickup' then
 				scenemanager:transitionscene(pickup)
 			elseif vars.selections[vars.selection] == 'statistics' then

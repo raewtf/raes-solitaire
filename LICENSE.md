@@ -1,6 +1,6 @@
 (source/fonts) Pixolde fonts made by Font End Dev, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
-(key art, source/images (unless otherwise noted below), source/audio) Art/graphical assets, music, and SFX made by rae, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+(source/images/cards/casino, source/images/cards/joker) "Casino" and "Joker" card images made by gurtt, under [CC0](https://creativecommons.org/public-domain/cc0/)
 
 (source/images/cards/shattered) "Shattered" card images made by Powerdive Games, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
@@ -9,6 +9,10 @@
 (source/images/cards/bedbeard) "Post Hero" card images made by Scenic Route Software, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 (source/images/cards/groove) "G.R.O.O.V.E." card image made by Synaptic Sugar, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+(source/images/cards/void, source/images/cards/void_alt) "Voidblazers" card images made by Tijn & Jazzie, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+(key art, source/images (unless otherwise noted below), source/audio) Art and the rest of the graphical assets, music, and SFX made by rae, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 (source/libraries/xorshift.lua) xorshift Lua implementation made by Eli Piilonen, under [CC0](https://creativecommons.org/public-domain/cc0/)
 

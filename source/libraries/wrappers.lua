@@ -169,7 +169,7 @@ end
 
 -- Plays a sound (stopping the previous instance if already playing). Import peedee sound object
 function playsound(sound)
-	if save.sfx then
+	if save.sfx and sound ~= nil then
 		sound:stop()
 		sound:play()
 	end
@@ -184,6 +184,7 @@ function randomizesfx(sfx1, sfx2, sfx3, sfx4, sfx5, rate)
 		if sfx3 ~= nil then sfc += 1 end
 		if sfx4 ~= nil then sfc += 1 end
 		if sfx5 ~= nil then sfc += 1 end
+		if sfc == 0 then return end
 		local rand = randInt(1, sfc)
 		if rand == 1 then
 			sfx1:setRate(rate or 1)
@@ -206,7 +207,7 @@ end
 
 -- Plays a sound (stopping the previous instance if already playing). Import peedee sound object
 function playcardsound(sound)
-	if save.card_sfx then
+	if save.card_sfx and sound ~= nil then
 		sound:stop()
 		sound:play()
 	end
@@ -221,56 +222,25 @@ function randomizecardsfx(sfx1, sfx2, sfx3, sfx4, sfx5, rate)
 		if sfx3 ~= nil then sfc += 1 end
 		if sfx4 ~= nil then sfc += 1 end
 		if sfx5 ~= nil then sfc += 1 end
+		if sfc == 0 then return end
+		print(sfc)
 		local rand = randInt(1, sfc)
 		if rand == 1 then
 			sfx1:setRate(rate or 1)
-			playsound(sfx1)
+			playcardsound(sfx1)
 		elseif rand == 2 then
 			sfx2:setRate(rate or 1)
-			playsound(sfx2)
+			playcardsound(sfx2)
 		elseif rand == 3 then
 			sfx3:setRate(rate or 1)
-			playsound(sfx3)
+			playcardsound(sfx3)
 		elseif rand == 4 then
 			sfx4:setRate(rate or 1)
-			playsound(sfx4)
+			playcardsound(sfx4)
 		elseif rand == 5 then
 			sfx5:setRate(rate or 1)
-			playsound(sfx5)
+			playcardsound(sfx5)
 		end
-	end
-end
-
--- Fades the music out, and trashes it when finished. Should be called alongside a scene change, only if the music is expected to change. Delay can set the delay (in seconds) of the fade
-function fademusic(delay)
-	delay = delay or 400
-	if music ~= nil then
-		music:setVolume(0, 0, delay / 1000, function()
-			music:stop()
-			music = nil
-		end)
-	end
-end
-
-function stopmusic()
-	if music ~= nil then
-		music:stop()
-		music = nil
-	end
-end
-
--- New music track. If a track's already playing, it will attempt to lead in naturally.
-function newmusic(file)
-	if save.music then
-		local offset = 0
-		if music ~= nil then
-			offset = music:getOffset()
-			stopmusic()
-		end
-		music = pd.sound.fileplayer.new(file)
-		music:setOffset(offset)
-		music:setLoopRange(0)
-		music:play(0)
 	end
 end
 
@@ -366,4 +336,8 @@ end
 
 function gettime()
 	return pd.getTime()
+end
+
+function is24hour()
+	return save.shoulddo24hour == 0 and pd.shouldDisplay24HourTime() or save.shoulddo24hour == 1 and false or save.shoulddo24hour == 2 and true
 end

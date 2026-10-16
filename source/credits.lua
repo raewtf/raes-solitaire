@@ -3,6 +3,7 @@ local gfx <const> = pd.graphics
 local center <const> = kTextAlignment.center
 local right <const> = kTextAlignment.right
 local format <const> = string.format
+local ceil <const> = math.ceil
 
 class('credits').extends(gfx.sprite)
 function credits:init(...)
@@ -12,6 +13,11 @@ function credits:init(...)
 	function pd.gameWillPause()
 		local menu = pd.getSystemMenu()
 		menu:removeAllMenuItems()
+		if not transitioning then
+			menu:addMenuItem(text('slide_back'), function()
+				scenemanager:transitionsceneback(title, 'credits')
+			end)
+		end
 	end
 
 	self:initialize(args)
@@ -24,6 +30,7 @@ end
 
 function credits:initialize(args)
 	assets = {
+		battery = newimagetable('images/battery'),
 	}
 
 	vars = {
@@ -31,7 +38,7 @@ function credits:initialize(args)
 	}
 	afterdelay('handler_delay', transitiontime, function() vars.handler = 'credits' end)
 
-	newmusic('audio/music/level1')
+	set_music_level(1)
 end
 
 function credits:update()
@@ -39,16 +46,16 @@ function credits:update()
 end
 
 function credits:draw()
+	drawtext(pixolde, text('credits_begin'), 10, 9)
+	drawtext(pixolde, text('credits_main'), 390, 20 + (save.control_bar and 0 or 6), right)
+	drawtext(pixolde, text('credits_guest_decks'), 10, 60 + (save.control_bar and 0 or 12))
+	drawtext(pixolde, text('credits_thanks'), 390, 124 + (save.control_bar and 0 or 18), right)
+
 	if save.control_bar then
 		-- drawing control bar
 		setcolor(0, 0, 0, 1, 'black')
 		fillrect(0, 220, 400, 20)
 		setcolor(255, 255, 255, 1, 'black')
-
-		drawtext(pixolde, text('credits_begin'), 10, 10)
-		drawtext(pixolde, text('credits_main'), 390, 20, right)
-		drawtext(pixolde, text('credits_guest_decks'), 10, 60)
-		drawtext(pixolde, text('credits_thanks'), 390, 124, right)
 
 		local controls
 
@@ -63,7 +70,21 @@ function credits:draw()
 		local time = gettime()
 		local hour = time.hour
 		local minute = time.minute
-		drawtext(pixolde_inverted, (pd.shouldDisplay24HourTime() and (format("%02d:%02d", hour, minute)) or (format("%01d:%02d", ((hour % 12) == 0 and 12 or (hour % 12)), minute)) .. (hour < 12 and 'a' or 'p')), 395, 223, right)
+		drawtext(pixolde_inverted, (is24hour() and (format("%02d:%02d", hour, minute)) or (format("%01d:%02d", ((hour % 12) == 0 and 12 or (hour % 12)), minute)) .. (hour < 12 and 'a' or 'p')), 373, 223, right)
+
+		local bat_stat = pd.getPowerStatus()
+		if bat_stat.charging then
+			if bat_stat.screws then
+				drawimagetable(assets.battery, 7, 380, 225)
+			else
+				drawimagetable(assets.battery, 6, 380, 225)
+			end
+		else
+			local battery = pd.getBatteryPercentage()
+			drawimagetable(assets.battery, ceil(battery / 20), 380, 225)
+		end
+	else
+		setcolor(255, 255, 255, 1, 'black')
 	end
 
 
