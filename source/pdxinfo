@@ -3,6 +3,6 @@ author=rae
 description=For having fun or killing time; patience is a virtue.
 bundleID=wtf.rae.solitaire
 version=1.0.0
-buildNumber=1837
+buildNumber=1842
 imagePath=images/system
 launchSoundPath=audio/sfx/pick1

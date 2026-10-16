@@ -50,6 +50,7 @@ function credits:draw()
 	drawtext(pixolde, text('credits_main'), 390, 20 + (save.control_bar and 0 or 6), right)
 	drawtext(pixolde, text('credits_guest_decks'), 10, 60 + (save.control_bar and 0 or 12))
 	drawtext(pixolde, text('credits_thanks'), 390, 124 + (save.control_bar and 0 or 18), right)
+	drawtext(pixolde, 'v' .. version, 10, 199 + (save.control_bar and 0 or 18))
 
 	if save.control_bar then
 		-- drawing control bar
